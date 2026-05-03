@@ -31,6 +31,7 @@ interface AppContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   loading: boolean;
+  isAdmin: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -41,6 +42,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeBans, setActiveBans] = useState<BanInfo[]>([]);
   const [language, setLanguage] = useState<Language>('en');
   const [loading, setLoading] = useState(true);
+
+  const isAdmin = user?.email === 'hfg98849@gmail.com';
 
   useEffect(() => {
     let unsubProfile: (() => void) | null = null;
@@ -119,7 +122,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   return (
-    <AppContext.Provider value={{ user, profile, activeBans, language, setLanguage, loading }}>
+    <AppContext.Provider value={{ user, profile, activeBans, language, setLanguage, loading, isAdmin }}>
       {children}
     </AppContext.Provider>
   );

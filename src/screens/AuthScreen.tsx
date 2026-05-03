@@ -24,9 +24,15 @@ export const AuthScreen: React.FC = () => {
 
   const handleGithubLogin = async () => {
     try {
+      console.log('Attempting GitHub Login with ID: Ov23li6UN2xNtVVMgOAb');
       await signInWithPopup(auth, githubProvider);
-    } catch (err) {
-      setError('GitHub login failed');
+    } catch (err: any) {
+      console.error('GitHub Login Error:', err);
+      if (err.code === 'auth/unauthorized-domain') {
+        setError('Domain not authorized. Please check Firebase settings.');
+      } else {
+        setError(`GitHub login failed: ${err.message}`);
+      }
     }
   };
 
