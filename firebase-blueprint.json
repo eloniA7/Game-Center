@@ -1,0 +1,210 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User account information and statistics.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "wins": { "type": "integer" },
+        "level": { "type": "integer" },
+        "xp": { "type": "integer" },
+        "provider": { "type": "string" },
+        "unlockedAvatars": { "type": "array" }
+      },
+      "required": ["uid", "email", "displayName"]
+    },
+    "Room": {
+      "title": "Game Room",
+      "description": "A game session for multiplayer or bot play.",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string" },
+        "gameType": { "type": "string", "enum": ["billiards", "snake_ladder", "domino", "kurdish_okey", "uno"] },
+        "status": { "type": "string", "enum": ["waiting", "active", "finished"] },
+        "players": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "hostId": { "type": "string" },
+        "maxPlayers": { "type": "integer" },
+        "mode": { "type": "string", "enum": ["online", "bot", "private"] },
+        "difficulty": { "type": "string", "enum": ["easy", "medium", "hard"] },
+        "gameState": { "type": "object" },
+        "currentTurn": { "type": "string" }
+      },
+      "required": ["roomId", "gameType", "status", "players", "createdAt"]
+    },
+    "Matchmaking": {
+      "title": "Matchmaking Entry",
+      "description": "A player waiting for an online game.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "gameType": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "gameType", "timestamp"]
+    },
+    "FriendRequest": {
+      "title": "Friend Request",
+      "description": "A request sent from one user to another to become friends.",
+      "type": "object",
+      "properties": {
+        "fromId": { "type": "string" },
+        "fromName": { "type": "string" },
+        "toId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "rejected"] },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["fromId", "toId", "status", "timestamp"]
+    },
+    "Friend": {
+      "title": "Friend Relationship",
+      "description": "Information about a friend connection.",
+      "type": "object",
+      "properties": {
+        "friendId": { "type": "string" },
+        "friendName": { "type": "string" },
+        "friendPhoto": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["friendId", "friendName", "timestamp"]
+    },
+    "GameInvite": {
+      "title": "Game Invite",
+      "description": "An invitation to join a specific game room.",
+      "type": "object",
+      "properties": {
+        "fromId": { "type": "string" },
+        "fromName": { "type": "string" },
+        "toId": { "type": "string" },
+        "roomId": { "type": "string" },
+        "gameType": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "rejected"] },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["fromId", "toId", "roomId", "status", "timestamp"]
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "A message sent in a private chat.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["senderId", "text", "timestamp"]
+    },
+    "UpdateLog": {
+      "title": "App Update",
+      "description": "Details about a new update or patch.",
+      "type": "object",
+      "properties": {
+        "version": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "features": { "type": "array" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["version", "title", "description", "timestamp"]
+    },
+    "Poll": {
+      "title": "Update Poll",
+      "description": "A poll to ask users about upcoming updates.",
+      "type": "object",
+      "properties": {
+        "question": { "type": "string" },
+        "yesLabel": { "type": "string" },
+        "noLabel": { "type": "string" },
+        "yesVotes": { "type": "integer" },
+        "noVotes": { "type": "integer" },
+        "voters": { "type": "array" },
+        "isActive": { "type": "boolean" },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["question", "yesLabel", "noLabel", "yesVotes", "noVotes", "isActive", "expiresAt"]
+    },
+    "Ban": {
+      "title": "User Ban",
+      "description": "Information about a user ban (game-specific or app-wide).",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "type": { "type": "string", "enum": ["app", "game"] },
+        "gameId": { "type": "string" },
+        "duration": { "type": "string" },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" }
+      },
+      "required": ["userId", "type", "expiresAt", "timestamp"]
+    },
+    "Report": {
+      "title": "Player Report",
+      "description": "A report filed against a player.",
+      "type": "object",
+      "properties": {
+        "reporterId": { "type": "string" },
+        "reporterName": { "type": "string" },
+        "reportedUserId": { "type": "string" },
+        "reportedUserName": { "type": "string" },
+        "reportedUserPhoto": { "type": "string" },
+        "reason": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "resolved", "cancelled"] },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["reporterId", "reportedUserId", "reason", "status", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/bans/{banId}": {
+      "schema": "Ban",
+      "description": "Active or past bans."
+    },
+    "/reports/{reportId}": {
+      "schema": "Report",
+      "description": "Player reports for admin review."
+    },
+    "/updates/{updateId}": {
+      "schema": "UpdateLog",
+      "description": "List of all app updates."
+    },
+    "/polls/{pollId}": {
+      "schema": "Poll",
+      "description": "Active polls for updates."
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Public and private user profile data."
+    },
+    "/users/{userId}/friends/{friendId}": {
+      "schema": "Friend",
+      "description": "Collection of user's friends."
+    },
+    "/rooms/{roomId}": {
+      "schema": "Room",
+      "description": "Active and past game rooms."
+    },
+    "/matchmaking/{uid}": {
+      "schema": "Matchmaking",
+      "description": "Players currently in the queue for matchmaking."
+    },
+    "/friend_requests/{requestId}": {
+      "schema": "FriendRequest",
+      "description": "Friend requests between users."
+    },
+    "/game_invites/{inviteId}": {
+      "schema": "GameInvite",
+      "description": "Invitations to join game rooms."
+    },
+    "/chats/{chatId}/messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Direct messages between friends."
+    }
+  }
+}

@@ -1,0 +1,216 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper Primitives
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(uid) { return isSignedIn() && request.auth.uid == uid; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isAdmin() { 
+      return isSignedIn() && (
+        request.auth.token.email == 'hfg98849@gmail.com' || 
+        // Only try exists if NOT the primary admin to save lookups
+        (request.auth.token.email != 'hfg98849@gmail.com' && exists(/databases/$(database)/documents/admins/$(request.auth.uid)))
+      ); 
+    }
+
+    // App Updates
+    match /updates/{updateId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Polls
+    match /polls/{pollId} {
+      allow read: if isSignedIn();
+      allow create, delete: if isAdmin();
+      allow update: if isSignedIn() && (
+        isAdmin() || 
+        (
+          incoming().diff(existing()).affectedKeys().hasOnly(['yesVotes', 'noVotes', 'voters']) &&
+          incoming().voters.size() == existing().voters.size() + 1 &&
+          request.auth.uid in incoming().voters &&
+          !(request.auth.uid in existing().voters) &&
+          existing().isActive == true &&
+          (existing().expiresAt == null || existing().expiresAt > request.time)
+        )
+      );
+    }
+
+    // Bans
+    match /bans/{banId} {
+      allow read: if isSignedIn() && (isAdmin() || resource.data.userId == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    // Reports
+    match /reports/{reportId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Admins List
+    match /admins/{uid} {
+      allow read: if isAdmin();
+      allow write: if false; // Only manageable via Console or Super Admin
+    }
+
+    // User Profile Rules
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.uid == request.auth.uid &&
+               data.email is string && data.email.size() <= 200 &&
+               data.displayName is string && data.displayName.size() <= 100;
+      }
+
+      allow get: if isSignedIn();
+      allow list: if false; 
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && 
+                      incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoUrl', 'wins', 'level', 'xp', 'unlockedAvatars', 'email']) &&
+                      isValidUser(incoming());
+    }
+
+    // Room Rules
+    match /rooms/{docId} {
+      function isValidRoom(data) {
+        return data.roomId is string && data.roomId.size() >= 1 && data.roomId.size() <= 32 &&
+               data.gameType is string && data.gameType.size() <= 50 &&
+               data.gameType in ['billiards', 'snake_ladder', 'domino', 'kurdish_okey', 'uno'] &&
+               data.status is string && data.status.size() <= 20 &&
+               data.status in ['waiting', 'active', 'finished'] &&
+               data.mode is string && data.mode.size() <= 20 &&
+               data.mode in ['online', 'private'] &&
+               data.maxPlayers >= 2 && data.maxPlayers <= 10 &&
+               data.hostId is string && data.hostId.size() <= 128 &&
+               data.hostId == request.auth.uid &&
+               data.players is list && data.players.size() > 0 && data.players.size() <= 10 &&
+               data.playerIds is list && data.playerIds.size() > 0 && data.playerIds.size() <= 10 &&
+               data.createdAt == request.time;
+      }
+
+      function isPlayerInRoom(data) {
+        return isSignedIn() && (request.auth.uid in data.playerIds);
+      }
+
+      allow get: if isSignedIn();
+      allow list: if isSignedIn() && (
+                    resource.data.mode == 'online' || 
+                    resource.data.hostId == request.auth.uid || 
+                    (request.auth.uid in resource.data.playerIds)
+                  );
+      
+      allow create: if isSignedIn() && 
+                      request.auth.token.email_verified == true &&
+                      isValidRoom(incoming());
+      
+      allow update: if isSignedIn() && 
+                      request.auth.token.email_verified == true &&
+                      // Action-Based Updates
+                      (
+                        // Common validation: Immutable fields (allowed to stay same)
+                        incoming().roomId == existing().roomId &&
+                        incoming().gameType == existing().gameType &&
+                        incoming().hostId == existing().hostId &&
+                        incoming().createdAt == existing().createdAt &&
+                        incoming().mode == existing().mode &&
+                        incoming().maxPlayers == existing().maxPlayers &&
+
+                        (
+                          // Action: Join Room
+                          (existing().status == 'waiting' && 
+                           incoming().status == 'waiting' &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['players', 'playerIds']) &&
+                           incoming().players.size() > existing().players.size() &&
+                           request.auth.uid in incoming().playerIds) ||
+                          
+                          // Action: Update Game State / Status
+                          (isPlayerInRoom(existing()) && 
+                           incoming().diff(existing()).affectedKeys().hasOnly(['gameState', 'status', 'currentTurn', 'players', 'playerIds']))
+                        )
+                      );
+      
+      allow delete: if isSignedIn() && request.auth.uid == existing().hostId;
+    }
+
+    // Matchmaking Rules
+    match /matchmaking/{uid} {
+      allow read: if isSignedIn();
+      allow create, delete: if isOwner(uid);
+    }
+
+    // Friend Requests
+    match /friend_requests/{requestId} {
+      function isValidFriendRequest(data) {
+        return data.fromId == request.auth.uid &&
+               data.toId is string && data.toId.size() <= 128 &&
+               data.status == 'pending' &&
+               data.timestamp == request.time;
+      }
+
+      allow get: if isSignedIn() && (resource.data.fromId == request.auth.uid || resource.data.toId == request.auth.uid);
+      allow list: if isSignedIn(); // Queries will be filtered by current user
+      allow create: if isSignedIn() && isValidFriendRequest(incoming());
+      allow update: if isSignedIn() && 
+                      resource.data.toId == request.auth.uid &&
+                      incoming().status in ['accepted', 'rejected'] &&
+                      incoming().diff(existing()).affectedKeys().hasOnly(['status']);
+      allow delete: if isSignedIn() && (resource.data.fromId == request.auth.uid || resource.data.toId == request.auth.uid);
+    }
+
+    // Friends Subcollection
+    match /users/{userId}/friends/{friendId} {
+      allow read: if isOwner(userId);
+      allow create, delete: if isOwner(userId) || isOwner(friendId);
+      allow update: if isOwner(userId);
+    }
+
+    // Game Invites
+    match /game_invites/{inviteId} {
+      function isValidInvite(data) {
+        return data.fromId == request.auth.uid &&
+               data.toId is string && data.toId.size() <= 128 &&
+               data.roomId is string && data.roomId.size() <= 128 &&
+               data.status == 'pending' &&
+               data.timestamp == request.time;
+      }
+
+      allow get: if isSignedIn() && (resource.data.fromId == request.auth.uid || resource.data.toId == request.auth.uid);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidInvite(incoming());
+      allow update: if isSignedIn() && 
+                      resource.data.toId == request.auth.uid &&
+                      incoming().status in ['accepted', 'rejected'] &&
+                      incoming().diff(existing()).affectedKeys().hasOnly(['status']);
+      allow delete: if isSignedIn() && (resource.data.fromId == request.auth.uid || resource.data.toId == request.auth.uid);
+    }
+
+    // Chats and Messages
+    match /chats/{chatId} {
+      function isChatParticipant(chatId) {
+        // chatId is expected to be uid1_uid2
+        return isSignedIn() && (request.auth.uid in chatId.split('_'));
+      }
+
+      allow get: if isChatParticipant(chatId);
+      
+      match /messages/{messageId} {
+        allow read: if isChatParticipant(chatId);
+        allow create: if isChatParticipant(chatId) && incoming().senderId == request.auth.uid && incoming().timestamp == request.time;
+      }
+    }
+
+    // Connection Test Rules
+    match /test/connection {
+      allow get: if true;
+    }
+  }
+}
