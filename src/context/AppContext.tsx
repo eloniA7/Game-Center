@@ -95,9 +95,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setActiveBans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as BanInfo)));
           setLoading(false);
         }, (error) => {
-          import('../lib/firebase').then(({ handleFirestoreError, OperationType }) => {
-            handleFirestoreError(error, OperationType.GET, bansPath);
-          });
+          console.error("Bans fetch error:", error);
           setLoading(false);
         });
       } else {
@@ -107,7 +105,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     });
 
+    // Safety timeout to ensure loading always finishes
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+
     return () => {
+      clearTimeout(timeout);
       unsubscribe();
       if (unsubProfile) unsubProfile();
       if (unsubBans) unsubBans();

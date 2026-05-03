@@ -3,6 +3,10 @@ import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, signO
 import { initializeFirestore, doc, getDocFromServer, getFirestore } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
+if (!firebaseConfig || !firebaseConfig.apiKey) {
+  console.error("❌ Firebase Configuration is missing or invalid! This will prevent the app from opening.");
+}
+
 // Ensure we only initialize the app once
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
