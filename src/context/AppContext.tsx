@@ -46,6 +46,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const isAdmin = user?.email === 'hfg98849@gmail.com';
 
   useEffect(() => {
+    // Check for NextAuth session
+    const checkSession = async () => {
+      try {
+        const res = await fetch('/api/auth/session');
+        const session = await res.json();
+        if (session && session.user) {
+          console.log('NextAuth Session found:', session.user);
+          // If we had a logic to link to Firebase, we'd do it here
+        }
+      } catch (err) {
+        console.error('Failed to fetch session:', err);
+      }
+    };
+    checkSession();
+
     let unsubProfile: (() => void) | null = null;
     let unsubBans: (() => void) | null = null;
 

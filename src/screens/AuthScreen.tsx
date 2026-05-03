@@ -14,12 +14,9 @@ export const AuthScreen: React.FC = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
 
-  const handleGoogleLogin = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (err) {
-      setError('Google login failed');
-    }
+  const handleGoogleLogin = () => {
+    // Redirect to the NextAuth Google sign-in endpoint
+    window.location.href = '/api/auth/signin/google';
   };
 
   const handleGithubLogin = async () => {
