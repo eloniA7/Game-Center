@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { LogIn, Mail, Apple, Github } from 'lucide-react';
 import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth, googleProvider } from '../lib/firebase';
+import { auth, googleProvider, githubProvider } from '../lib/firebase';
 import { useAppContext } from '../context/AppContext';
 import { translations } from '../translations';
 
@@ -19,6 +19,14 @@ export const AuthScreen: React.FC = () => {
       await signInWithPopup(auth, googleProvider);
     } catch (err) {
       setError('Google login failed');
+    }
+  };
+
+  const handleGithubLogin = async () => {
+    try {
+      await signInWithPopup(auth, githubProvider);
+    } catch (err) {
+      setError('GitHub login failed');
     }
   };
 
@@ -79,9 +87,12 @@ export const AuthScreen: React.FC = () => {
             {t.login_google}
           </button>
           
-          <button className="w-full flex items-center justify-center gap-3 bg-black text-white py-3 rounded-xl font-semibold border border-white/10 hover:bg-white/5 transition-all active:scale-95">
-            <Apple className="w-5 h-5" />
-            {t.login_apple}
+          <button 
+            onClick={handleGithubLogin}
+            className="w-full flex items-center justify-center gap-3 bg-[#24292e] text-white py-3 rounded-xl font-semibold hover:bg-[#2b3137] transition-all active:scale-95"
+          >
+            <Github className="w-5 h-5" />
+            Connect with GitHub
           </button>
         </div>
 
