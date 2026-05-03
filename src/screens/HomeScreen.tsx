@@ -34,7 +34,7 @@ const getRequiredLevel = (index: number) => {
 };
 
 export const HomeScreen: React.FC<{ onSelectGame: (id: string, mode?: any) => void }> = ({ onSelectGame }) => {
-  const { profile, language, setLanguage, activeBans } = useAppContext();
+  const { profile, language, setLanguage, activeBans, isAdmin } = useAppContext();
   const { pendingRequests, incomingInvites } = useSocial();
   const t = translations[language];
   const [showSettings, setShowSettings] = useState(false);
@@ -84,8 +84,7 @@ export const HomeScreen: React.FC<{ onSelectGame: (id: string, mode?: any) => vo
     }
   };
 
-const socialNotificationCount = pendingRequests.length;
-  const isAdmin = profile?.email === 'hfg98849@gmail.com';
+  const socialNotificationCount = pendingRequests.length;
   const visibleBans = activeBans.filter(b => !acknowledgedBans.includes(b.id));
 
   return (

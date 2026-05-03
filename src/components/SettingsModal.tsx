@@ -22,8 +22,7 @@ interface SettingsModalProps {
 type Category = 'general' | 'account' | 'game' | 'notifications' | 'privacy' | 'about' | 'admin';
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onOpenAdmin }) => {
-  const { language, setLanguage, profile } = useAppContext();
-  const isAdmin = profile?.email === 'hfg98849@gmail.com';
+  const { language, setLanguage, profile, isAdmin } = useAppContext();
   const t = translations[language];
   const [activeCategory, setActiveCategory] = useState<Category>('general');
   const [editingName, setEditingName] = useState(false);
