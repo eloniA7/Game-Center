@@ -266,13 +266,6 @@ const socialNotificationCount = pendingRequests.length;
         <h3 className="text-sm font-bold uppercase tracking-widest text-white/40">{t.social_support}</h3>
         <div className="flex flex-wrap gap-4">
           <a 
-            href="https://tiktok.com/@xx.kurdstan" target="_blank" rel="noreferrer"
-            className="flex items-center gap-3 bg-white/5 border border-white/10 px-6 py-3 rounded-2xl hover:bg-white/10 transition-all"
-          >
-            <MessageCircle size={18} className="text-pink-500" />
-            <span className="font-semibold text-sm">TikTok</span>
-          </a>
-          <a 
             href="https://www.snapchat.com/add/xx.eloni2024?share_id=WV4633htRac&locale=en-GB" target="_blank" rel="noreferrer"
             className="flex items-center gap-3 bg-white/5 border border-white/10 px-6 py-3 rounded-2xl hover:bg-white/10 transition-all"
           >
