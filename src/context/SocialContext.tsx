@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
 import { 
   collection, 
   query, 
@@ -25,39 +26,48 @@ export const SocialProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [unreadTotal, setUnreadTotal] = useState(0);
 
   useEffect(() => {
-    if (!auth.currentUser) return;
-
-    const userId = auth.currentUser.uid;
-
-    // Friends listener
-    const friendsUnsub = onSnapshot(
-      collection(db, 'users', userId, 'friends'),
-      (snapshot) => {
-        setFriends(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        setFriends([]);
+        setPendingRequests([]);
+        setIncomingInvites([]);
+        return;
       }
-    );
 
-    // Pending Requests listener
-    const requestsUnsub = onSnapshot(
-      query(collection(db, 'friend_requests'), where('toId', '==', userId), where('status', '==', 'pending')),
-      (snapshot) => {
-        setPendingRequests(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      }
-    );
+      const userId = user.uid;
 
-    // Incoming Invites listener
-    const invitesUnsub = onSnapshot(
-      query(collection(db, 'game_invites'), where('toId', '==', userId), where('status', '==', 'pending')),
-      (snapshot) => {
-        setIncomingInvites(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      }
-    );
+      // Friends listener
+      const friendsUnsub = onSnapshot(
+        collection(db, 'users', userId, 'friends'),
+        (snapshot) => {
+          setFriends(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        }
+      );
 
-    return () => {
-      friendsUnsub();
-      requestsUnsub();
-      invitesUnsub();
-    };
+      // Pending Requests listener
+      const requestsUnsub = onSnapshot(
+        query(collection(db, 'friend_requests'), where('toId', '==', userId), where('status', '==', 'pending')),
+        (snapshot) => {
+          setPendingRequests(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        }
+      );
+
+      // Incoming Invites listener
+      const invitesUnsub = onSnapshot(
+        query(collection(db, 'game_invites'), where('toId', '==', userId), where('status', '==', 'pending')),
+        (snapshot) => {
+          setIncomingInvites(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        }
+      );
+
+      return () => {
+        friendsUnsub();
+        requestsUnsub();
+        invitesUnsub();
+      };
+    });
+
+    return () => unsubAuth();
   }, []);
 
   return (

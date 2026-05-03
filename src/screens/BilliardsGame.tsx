@@ -1,9 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, RefreshCcw, Maximize2 } from 'lucide-react';
-import Matter from 'matter-js';
+import * as Matter from 'matter-js';
 
-const { Engine, Render, World, Bodies, Body } = Matter;
+const Engine = Matter.Engine;
+const Render = Matter.Render;
+const World = Matter.World;
+const Bodies = Matter.Bodies;
+const Body = Matter.Body;
 
 const TABLE_WIDTH = 800;
 const TABLE_HEIGHT = 400;

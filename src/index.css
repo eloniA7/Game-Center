@@ -29,10 +29,11 @@
 
 @layer base {
   body {
-    @apply bg-game-bg text-white font-sans overflow-hidden;
+    @apply bg-game-bg text-white font-sans overflow-hidden h-[100dvh];
     user-select: none;
     touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 

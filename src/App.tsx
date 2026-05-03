@@ -61,7 +61,7 @@ function AppContent() {
   };
 
   return (
-    <div className="h-screen w-screen relative overflow-hidden bg-game-bg text-white font-sans">
+    <div className="h-[100dvh] w-screen relative overflow-hidden bg-game-bg text-white font-sans">
       <AnimatePresence mode="wait">
         <div key={view.id} className="h-full w-full">
           {renderGame()}
