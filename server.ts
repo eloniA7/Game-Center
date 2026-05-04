@@ -24,11 +24,19 @@ async function startServer() {
     console.error("❌ AUTH_SECRET is missing! Authentication will fail. Please set it in your environment variables.");
   }
 
-  const authConfig = {
+  const authConfig: any = {
     providers: [
       Google({
         clientId: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        authorization: {
+          params: {
+            prompt: "consent",
+            access_type: "offline",
+            response_type: "code",
+            scope: "openid email profile"
+          },
+        },
       }),
       Github({
         clientId: process.env.GITHUB_CLIENT_ID,
@@ -36,11 +44,16 @@ async function startServer() {
       }),
     ],
     secret: authSecret || "fallback-secret-for-dev-only",
+    basePath: "/api/auth",
     trustHost: true,
+    debug: true,
   };
 
   // Auth routes
-  app.use("/api/auth", ExpressAuth(authConfig));
+  app.use("/api/auth", (req, res, next) => {
+    console.log(`[Auth Request] ${req.method} ${req.url} - Original Path: ${req.path}`);
+    next();
+  }, ExpressAuth(authConfig));
 
   // Health check
   app.get("/api/health", (req, res) => {
@@ -64,6 +77,9 @@ async function startServer() {
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`\n🔑 [IMPORTANT] Ensure your Google Cloud Console has these 'Authorized redirect URIs':`);
+    console.log(`- https://ais-dev-nkj4njn5f5ztuqvdyx2duh-418169019397.europe-west1.run.app/api/auth/callback/google`);
+    console.log(`- https://ais-pre-nkj4njn5f5ztuqvdyx2duh-418169019397.europe-west1.run.app/api/auth/callback/google\n`);
   });
 }
 

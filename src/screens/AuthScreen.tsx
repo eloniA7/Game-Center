@@ -15,22 +15,13 @@ export const AuthScreen: React.FC = () => {
   const [error, setError] = useState('');
 
   const handleGoogleLogin = () => {
-    // Redirect to the NextAuth Google sign-in endpoint
-    window.location.href = '/api/auth/signin/google';
+    setError('Redirecting to Secure Login...');
+    window.location.href = window.location.origin + '/api/auth/signin/google';
   };
 
-  const handleGithubLogin = async () => {
-    try {
-      console.log('Attempting GitHub Login with ID: Ov23li6UN2xNtVVMgOAb');
-      await signInWithPopup(auth, githubProvider);
-    } catch (err: any) {
-      console.error('GitHub Login Error:', err);
-      if (err.code === 'auth/unauthorized-domain') {
-        setError('Domain not authorized. Please check Firebase settings.');
-      } else {
-        setError(`GitHub login failed: ${err.message}`);
-      }
-    }
+  const handleGithubLogin = () => {
+    setError('Redirecting to Secure Login...');
+    window.location.href = window.location.origin + '/api/auth/signin/github';
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {

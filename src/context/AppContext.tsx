@@ -49,14 +49,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Check for NextAuth session
     const checkSession = async () => {
       try {
+        console.log('Checking for NextAuth session...');
         const res = await fetch('/api/auth/session');
         const session = await res.json();
         if (session && session.user) {
           console.log('NextAuth Session found:', session.user);
-          // If we had a logic to link to Firebase, we'd do it here
+        } else {
+          console.log('No NextAuth session found.');
         }
       } catch (err) {
-        console.error('Failed to fetch session:', err);
+        console.error('Failed to fetch session. This is expected if you are not logged in via NextAuth yet:', err);
       }
     };
     checkSession();
